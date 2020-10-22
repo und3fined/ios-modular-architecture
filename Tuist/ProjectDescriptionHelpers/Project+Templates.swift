@@ -11,9 +11,9 @@ let bundleIdentifier = "com.und3fined.app"
 let projectName = "Modular"
 
 public enum modularTarget {
+    case example
     case framework
     case tests
-    case examples
     case testing
 }
 
@@ -28,8 +28,6 @@ extension Target {
         dependencies: [String] = [],
         testDependencies: [String] = []
     ) -> [Target] {
-       
-
         let appConfigurations: [CustomConfiguration] = [
             .debug(name: "Debug", settings: [String: SettingValue](), xcconfig: .relativeToRoot("Configurations/iOS/iOS-Application.xcconfig")),
             .debug(name: "Release", settings: [String: SettingValue](), xcconfig: .relativeToRoot("Configurations/iOS/iOS-Application.xcconfig")),
@@ -38,7 +36,7 @@ extension Target {
             .debug(name: "Debug", settings: [String: SettingValue](), xcconfig: .relativeToRoot("Configurations/iOS/iOS-Base.xcconfig")),
             .debug(name: "Release", settings: [String: SettingValue](), xcconfig: .relativeToRoot("Configurations/iOS/iOS-Base.xcconfig")),
         ]
-        let targetDependencies: [TargetDependency] = dependencies.map({ depensName($0) })
+        let targetDependencies: [TargetDependency] = dependencies.map({ .target(name: $0) })
         let infoPlist: [String: InfoPlist.Value] = [
             "CFBundleShortVersionString": "0.0.1",
             "CFBundleVersion": "1",
@@ -74,7 +72,7 @@ extension Target {
                 bundleId: "\(bundleIdentifier).\(name)",
                 deploymentTarget: .iOS(targetVersion: "14.0", devices: [.iphone, .ipad]),
                 infoPlist: .extendingDefault(with: infoPlist),
-                sources: ["Projects/App/Application/**/*.swift"],
+                sources: ["Projects/App/Sources/**/*.swift"],
                 resources: ["Projects/App/Resources/**/*"],
                 dependencies: targetDependencies,
                 settings: Settings(configurations: appConfigurations)
@@ -87,9 +85,9 @@ extension Target {
                 infoPlist: .default,
                 sources: ["Projects/App/Tests/**/*.swift"],
                 dependencies: [
-                    depensName(name),
+                    .target(name: targetName),
                     .xctest,
-                ] + testDependencies.map({ depensName($0) }),
+                ] + testDependencies.map({ .target(name: $0) }),
                 settings: Settings(configurations: testsConfigurations)
             ),
             Target(
@@ -100,9 +98,9 @@ extension Target {
                 infoPlist: .default,
                 sources: ["Projects/App/UITests/**/*.swift"],
                 dependencies: [
-                    depensName(name),
+                    .target(name: targetName),
                     .xctest,
-                ] + testDependencies.map({ depensName($0) }),
+                ] + testDependencies.map({ .target(name: $0) }),
                 settings: Settings(configurations: testsConfigurations)
             ),
         ]
@@ -112,7 +110,9 @@ extension Target {
         name: String,
         dependencies: [String] = [],
         testDependencies: [String] = [],
-        targets: Set<modularTarget> = Set([.framework, .tests, .examples, .testing]),
+        thirdPartyDependencies: [String] = [],
+        thirdPartyTestDependencies: [String] = [],
+        targets: Set<modularTarget> = Set([.framework, .tests, .example, .testing]),
         sdks: [String] = [],
         dependsOnXCTest: Bool = false
     ) -> [Target] {
@@ -132,24 +132,26 @@ extension Target {
         
         // Test dependencies
         var targetTestDependencies: [TargetDependency] = [
-            depensName(name),
+            .target(name: "\(name)"),
             .xctest,
         ] + testDependencies.map({ .target(name: $0) })
-        dependencies.forEach { targetTestDependencies.append(depensName("\($0)-Testing")) }
-        
+        targetTestDependencies.append(contentsOf: thirdPartyTestDependencies.map  { .package(product: $0) })
+        dependencies.forEach { targetTestDependencies.append(.target(name: "\($0)-Testing")) }
+
         // Target dependencies
-        var targetDependencies: [TargetDependency] = dependencies.map { depensName($0) }
+        var targetDependencies: [TargetDependency] = dependencies.map { .target(name: $0) }
+        targetDependencies.append(contentsOf: thirdPartyDependencies.map { .package(product: $0) })
         targetDependencies.append(contentsOf: sdks.map { .sdk(name: $0) })
         if dependsOnXCTest {
             targetDependencies.append(.xctest)
         }
-        
+
         // Targets
         var projectTargets: [Target] = []
         if targets.contains(.framework) {
             projectTargets.append(
                 Target(
-                    name: "\(projectName)-\(name)",
+                    name: name,
                     platform: .iOS,
                     product: .framework,
                     bundleId: "\(bundleIdentifier).\(name)",
@@ -161,25 +163,27 @@ extension Target {
                 )
             )
         }
+
         if targets.contains(.testing) {
             projectTargets.append(
                 Target(
-                    name: "\(projectName)-\(name)-Testing",
+                    name: "\(name)-Testing",
                     platform: .iOS,
                     product: .framework,
                     bundleId: "\(bundleIdentifier).\(name).Testing",
                     deploymentTarget: .iOS(targetVersion: "14.0", devices: [.iphone, .ipad]),
                     infoPlist: .default,
                     sources: ["Projects/Modular/\(name)/Testing/**/*.swift"],
-                    dependencies: [depensName(name), .xctest],
+                    dependencies: [.target(name: "\(name)"), .xctest],
                     settings: Settings(configurations: frameworkConfigurations)
                 )
             )
         }
+
         if targets.contains(.tests) {
             projectTargets.append(
                 Target(
-                    name: "\(projectName)-\(name)-Tests",
+                    name: "\(name)-Tests",
                     platform: .iOS,
                     product: .unitTests,
                     bundleId: "\(bundleIdentifier).\(name).Tests",
@@ -190,10 +194,11 @@ extension Target {
                 )
             )
         }
-        if targets.contains(.examples) {
+
+        if targets.contains(.example) {
             projectTargets.append(
                 Target(
-                    name: "\(projectName)-\(name)-Example",
+                    name: "\(name)-Example",
                     platform: .iOS,
                     product: .app,
                     bundleId: "\(bundleIdentifier).\(name).Example",
@@ -201,7 +206,7 @@ extension Target {
                     infoPlist: .default,
                     sources: ["Projects/Modular/\(name)/Example/Sources/**/*.swift"],
                     resources: ["Projects/Modular/\(name)/Example/Resources/**"],
-                    dependencies: [depensName(name)],
+                    dependencies: [.target(name: "\(name)")],
                     settings: Settings(configurations: appConfigurations)
                 )
             )

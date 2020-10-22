@@ -8,11 +8,16 @@ all: clean
 
 start: tuist/generate tuist/open initial_file_header ## Start code
 
+open: tuist/open ## Open project
+
 clean: ## Clean cache
 	@echo "Start clean project"
 	@tuist clean > /dev/null
 	@rm -rf ./Derived
+	@rm -rf .package.resolved
 	@echo "✅  Remove cache files!"
+	@xcrun -k
+	@xcodebuild -alltargets clean
 	@rm -rf *.xc*
 	@echo "✅  Remove Xcode files!"
 	@echo "Done."
@@ -20,6 +25,7 @@ clean: ## Clean cache
 tuist/open: ## Open with xcode
 	@echo "\033[36m$(WORKSPACE_NAME) is opening in Xcode...\033[0m"
 	@sleep 1
+	@tuist focus $(WORKSPACE_NAME)
 	@open $(WORKSPACE_NAME).xcworkspace
 
 tuist/generate: ## Generate project

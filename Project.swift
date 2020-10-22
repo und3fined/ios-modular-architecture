@@ -11,22 +11,35 @@ func targets() -> [Target] {
     targets += Target.makeAppTargets(
         name: "App",
         displayName: "Modular",
-        dependencies: [],
-        testDependencies: ["Testing"]
+        dependencies: ["M1"]
     )
+
     targets += Target.makeFrameworkTargets(
-        name: "Testing",
-        targets: Set([.framework]),
-        dependsOnXCTest: true
+        name: "M1",
+        targets: Set([.framework])
     )
-    targets += Target.makeFrameworkTargets(name: "UI")
+
     return targets
 }
 
 let project = Project(
     name: "Modular-App",
     organizationName: "app.und3fined.com",
-    packages: [],
+    packages: [
+//        .package(
+//            url: "https://github.com/Alamofire/Alamofire",
+//            .upToNextMajor(from: "5.3.0")
+//        ),
+//        .package(
+//            url: "https://github.com/Quick/Quick",
+//            .upToNextMajor(from: "3.0.0")
+//        ),
+//        .package(
+//            url: "https://github.com/Quick/Nimble",
+//            .upToNextMajor(from: "9.0.0")
+//        )
+    ],
     settings: Settings(configurations: configurations),
-    targets: targets()
+    targets: targets(),
+    additionalFiles: ["Project.swift"]
 )
