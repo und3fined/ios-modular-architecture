@@ -74,8 +74,8 @@ extension Target {
                 bundleId: "\(bundleIdentifier).\(name)",
                 deploymentTarget: .iOS(targetVersion: "14.0", devices: [.iphone, .ipad]),
                 infoPlist: .extendingDefault(with: infoPlist),
-                sources: ["App/Application/**/*.swift"],
-                resources: ["App/Resources/**/*"],
+                sources: ["Projects/App/Application/**/*.swift"],
+                resources: ["Projects/App/Resources/**/*"],
                 dependencies: targetDependencies,
                 settings: Settings(configurations: appConfigurations)
             ),
@@ -85,7 +85,7 @@ extension Target {
                 product: .unitTests,
                 bundleId: "\(bundleIdentifier).\(name).Tests",
                 infoPlist: .default,
-                sources: ["App/Tests/**/*.swift"],
+                sources: ["Projects/App/Tests/**/*.swift"],
                 dependencies: [
                     depensName(name),
                     .xctest,
@@ -98,7 +98,7 @@ extension Target {
                 product: .unitTests,
                 bundleId: "\(bundleIdentifier).\(name).UITests",
                 infoPlist: .default,
-                sources: ["App/UITests/**/*.swift"],
+                sources: ["Projects/App/UITests/**/*.swift"],
                 dependencies: [
                     depensName(name),
                     .xctest,
@@ -155,7 +155,7 @@ extension Target {
                     bundleId: "\(bundleIdentifier).\(name)",
                     deploymentTarget: .iOS(targetVersion: "14.0", devices: [.iphone, .ipad]),
                     infoPlist: .default,
-                    sources: ["Modular/\(name)/Sources/**/*.swift"],
+                    sources: ["Projects/Modular/\(name)/Sources/**/*.swift"],
                     dependencies: targetDependencies,
                     settings: Settings(configurations: frameworkConfigurations)
                 )
@@ -170,7 +170,7 @@ extension Target {
                     bundleId: "\(bundleIdentifier).\(name).Testing",
                     deploymentTarget: .iOS(targetVersion: "14.0", devices: [.iphone, .ipad]),
                     infoPlist: .default,
-                    sources: ["Modular/\(name)/Testing/**/*.swift"],
+                    sources: ["Projects/Modular/\(name)/Testing/**/*.swift"],
                     dependencies: [depensName(name), .xctest],
                     settings: Settings(configurations: frameworkConfigurations)
                 )
@@ -184,7 +184,7 @@ extension Target {
                     product: .unitTests,
                     bundleId: "\(bundleIdentifier).\(name).Tests",
                     infoPlist: .default,
-                    sources: ["Modular/\(name)/Tests/**/*.swift"],
+                    sources: ["Projects/Modular/\(name)/Tests/**/*.swift"],
                     dependencies: targetTestDependencies,
                     settings: Settings(configurations: testsConfigurations)
                 )
@@ -199,8 +199,8 @@ extension Target {
                     bundleId: "\(bundleIdentifier).\(name).Example",
                     deploymentTarget: .iOS(targetVersion: "14.0", devices: [.iphone, .ipad]),
                     infoPlist: .default,
-                    sources: ["Modular/\(name)/Example/Sources/**/*.swift"],
-                    resources: ["Modular/\(name)/Example/Resources/**"],
+                    sources: ["Projects/Modular/\(name)/Example/Sources/**/*.swift"],
+                    resources: ["Projects/Modular/\(name)/Example/Resources/**"],
                     dependencies: [depensName(name)],
                     settings: Settings(configurations: appConfigurations)
                 )
